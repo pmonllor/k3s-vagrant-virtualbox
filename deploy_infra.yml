@@ -1,0 +1,8 @@
+---
+- name: Deploy infrastructure using Vagrant
+  hosts: localhost
+  gather_facts: true
+  vars_files:
+    - vars/infra.yml
+  roles:
+    - role: deploy_infra

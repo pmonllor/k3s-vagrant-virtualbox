@@ -1,0 +1,37 @@
+---
+- name: Setup SSH
+  hosts: localhost
+  gather_facts: true
+  vars_files:
+    - vars/infra.yml
+  tasks:
+    - name: Copy SSH key to ~/.ssh with correct permissions
+      ansible.builtin.copy:
+        src: ".vagrant/machines/{{ item }}/virtualbox/private_key"
+        dest: "~/.ssh/{{ item }}-key"
+        mode: '0700'
+      loop: 
+        - "{{ master_server.split('.')[0] }}"
+        - "{{ worker_node_1.split('.')[0] }}"
+        - "{{ worker_node_2.split('.')[0] }}"
+
+- name: Setup k3s cluster
+  hosts: cluster
+  gather_facts: true
+  vars_files:
+    - vars/infra.yml
+  become: true
+  roles:
+    - role: setup_k3s
+
+- name: Setup kubeconfig
+  hosts: localhost
+  gather_facts: true
+  vars_files:
+    - vars/infra.yml
+  tasks:
+    - name: Replace kubeconfig localhost IP for master IP address
+      replace:
+        path: ~/.kube/k3s.yaml
+        regexp: '127\.0\.0\.1'
+        replace: "{{ hostvars[groups['master_server'][0]]['ansible_host'] }}"

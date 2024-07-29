@@ -1,0 +1,46 @@
+---
+- name: Check if kubectl is installed
+  command: kubectl version --client
+  register: kubectl_installed
+  changed_when: true
+  failed_when: false
+
+- block:
+  - name: Get kubectl last stable version
+    shell: curl -L -s https://dl.k8s.io/release/stable.txt
+    register: kubectl_version
+
+  - name: Download kubectl binaries
+    shell: "curl -LO 'https://dl.k8s.io/release/{{ kubectl_version.stdout }}/bin/linux/amd64/kubectl'"
+
+  - name: Install kubectl
+    shell: install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+    become: true
+
+  - name: Kubectl binaries cleanup
+    file:
+      path: "{{ item }}"
+      state: absent
+    loop:
+      - kubectl
+      - kubectl.sha256
+  when: kubectl_installed.rc != 0
+
+- name: Assert that IPs are not repeated
+  assert:
+    that:
+      - master_server_ip != worker_node_1_ip
+      - worker_node_1_ip != worker_node_2_ip
+      - worker_node_2_ip != master_server_ip
+    success_msg: "SUCCESS - IPs are not repeated"
+    fail_msg: "ERROR - IPs are reapeted, please modify them in vars/main.yml"
+
+- name: Create Vagrantfile
+  template:
+    src: Vagrantfile.j2
+    dest: ./Vagrantfile
+
+- name: Create Ansible inventory
+  ansible.builtin.template:
+    src: inventory.j2
+    dest: ./inventory.ini

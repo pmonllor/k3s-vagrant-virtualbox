@@ -1,0 +1,39 @@
+---
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+
+- name: Check if kubectl is installed
+  command: kubectl version --client
+  register: kubectl_installed
+  changed_when: true
+  failed_when: false
+
+- debug: var=kubectl_installed
+
+- name: Install Vagrant & VirtualBox 
+  include_tasks: install_packages.yml
+  when: "'vagrant' not in ansible_facts.packages or 
+         'virtualbox' not in ansible_facts.packages | lower or
+         kubectl_installed.rc != 0"
+
+- name: Assert that IPs are not repeated
+  assert:
+    that:
+      - master_server_ip != worker_node_1_ip
+      - worker_node_1_ip != worker_node_2_ip
+      - worker_node_2_ip != master_server_ip
+    success_msg: "SUCCESS - IPs are not repeated"
+    fail_msg: "ERROR - IPs are reapeted, please modify them in vars/main.yml"
+
+- name: Create Vagrantfile
+  template:
+    src: Vagrantfile.j2
+    dest: ./Vagrantfile
+
+- name: Create Ansible inventory
+  ansible.builtin.template:
+    src: inventory.j2
+    dest: ./inventory.ini
+
+- name: Deploy Vagrantfile
+  shell: "vagrant up {{ master_server.split('.')[0] }} {{ worker_node_1.split('.')[0] }} {{ worker_node_2.split('.')[0] }}"

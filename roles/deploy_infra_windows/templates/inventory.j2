@@ -1,0 +1,14 @@
+[master_server]
+{{ master_server }} ansible_host={{ master_server_ip }} ansible_ssh_private_key_file=~/.ssh/{{ master_server.split('.')[0] }}-key
+
+[worker_nodes]
+{{ worker_node_1 }} ansible_host={{ worker_node_1_ip }} ansible_ssh_private_key_file=~/.ssh/{{ worker_node_1.split('.')[0] }}-key
+{{ worker_node_2 }} ansible_host={{ worker_node_2_ip }} ansible_ssh_private_key_file=~/.ssh/{{ worker_node_2.split('.')[0] }}-key
+
+[cluster:children]
+master_server
+worker_nodes
+
+[cluster:vars]
+ansible_ssh_user=vagrant
+ansible_ssh_common_args=" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"

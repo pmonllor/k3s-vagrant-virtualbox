@@ -1,0 +1,42 @@
+---
+- name: setup_k3s | main.yml | Add cluster hosts entries to /etc/hosts
+  ansible.builtin.lineinfile:
+    dest: /etc/hosts
+    line: "{{ hostvars[item]['ansible_eth1']['ipv4']['address'] }} {{ item }} {{ item.split('.')[0] }}"
+    state: present
+  loop: 
+    - "{{ master_server }}"
+    - "{{ worker_node_1 }}"
+    - "{{ worker_node_2 }}"
+
+- name: setup_k3s | main.yml | Gather the package facts
+  ansible.builtin.package_facts:
+
+- name: setup_k3s | main.yml | Install Docker
+  include_tasks: install_docker.yml
+  when: "'docker-ce' not in ansible_facts.packages or 'docker-ce-cli' not in ansible_facts.packages or 'containerd.io' not in ansible_facts.packages
+        or 'docker-buildx-plugin' not in ansible_facts.packages or 'docker-compose-plugin' not in ansible_facts.packages"
+
+- block:
+  - name: setup_k3s | main.yml | Install k3s on master server
+    shell: curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--write-kubeconfig ~/.kube/config --write-kubeconfig-mode 666 --node-external-ip {{ hostvars[groups['master_server'][0]]['ansible_host'] }} --tls-san {{ hostvars[groups['master_server'][0]]['ansible_host'] }}" sh -
+
+  - name: setup_k3s | main.yml | Get server token
+    ansible.builtin.slurp:
+      src: /var/lib/rancher/k3s/server/node-token
+    register: get_token
+
+  - name: setup_k3s | main.yml | Set server token variable
+    set_fact:
+      node_token: "{{ (get_token.content | b64decode)[:-1] }}"
+
+  - name: Fetch kubeconfig
+    fetch:
+      src: /etc/rancher/k3s/k3s.yaml
+      dest: ~/.kube/k3s.yaml
+      flat: yes
+  when: inventory_hostname == groups['master_server'][0]
+
+- name: setup_k3s | main.yml | Install additional worker nodes
+  shell: "curl -sfL https://get.k3s.io | K3S_URL=https://10.0.1.10:6443 K3S_TOKEN='{{ hostvars[groups['master_server'][0]]['node_token'] }}' sh -"
+  when: inventory_hostname in groups['worker_nodes']

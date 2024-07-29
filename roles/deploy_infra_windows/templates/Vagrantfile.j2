@@ -1,0 +1,58 @@
+Vagrant.configure("2") do |config|
+    config.vm.define "{{ master_server.split('.')[0] }}" do |{{ master_server.split('.')[0] }}|
+      # OS
+      {{ master_server.split('.')[0] }}.vm.box = "{{ vagrant_box }}"
+
+      # Networking
+      {{ master_server.split('.')[0] }}.vm.hostname = "{{ master_server }}"
+      {{ master_server.split('.')[0] }}.vm.network :private_network, ip: "{{ master_server_ip }}"
+
+      # Disks
+      {{ master_server.split('.')[0] }}.vm.disk :disk, size: "{{ master_server_disk }}", primary: true
+
+      # VirtualBox configuration
+      {{ master_server.split('.')[0] }}.vm.provider "virtualbox" do |vb|
+        vb.customize ["modifyvm", :id, "--name", "{{ master_server.split('.')[0] }}"]
+        vb.customize ["modifyvm", :id, "--memory", {{ master_server_ram }}]
+        vb.customize ["modifyvm", :id, "--cpus", "{{ master_server_cpus }}"] 
+      end
+    end
+  
+    config.vm.define "{{ worker_node_1.split('.')[0] }}" do |{{ worker_node_1.split('.')[0] }}|
+      # OS
+      {{ worker_node_1.split('.')[0] }}.vm.box = "{{ vagrant_box }}"
+
+      # Networking
+      {{ worker_node_1.split('.')[0] }}.vm.hostname = "{{ worker_node_1 }}"
+      {{ worker_node_1.split('.')[0] }}.vm.network :private_network, ip: "{{ worker_node_1_ip }}"
+
+      # Disks
+      {{ worker_node_1.split('.')[0] }}.vm.disk :disk, size: "{{ worker_node_1_disk }}", primary: true  # OS
+      
+      # VirtualBox configuration
+      {{ worker_node_1.split('.')[0] }}.vm.provider "virtualbox" do |vb|
+        vb.customize ["modifyvm", :id, "--name", "{{ worker_node_1.split('.')[0] }}"]
+        vb.customize ["modifyvm", :id, "--memory", {{ worker_nodes_ram }}]
+        vb.customize ["modifyvm", :id, "--cpus", "{{ worker_nodes_cpus }}"] 
+      end
+    end
+
+    config.vm.define "{{ worker_node_2.split('.')[0] }}" do |{{ worker_node_2.split('.')[0] }}|
+      # OS
+      {{ worker_node_2.split('.')[0] }}.vm.box = "{{ vagrant_box }}"
+
+      # Networking
+      {{ worker_node_2.split('.')[0] }}.vm.hostname = "{{ worker_node_2 }}"
+      {{ worker_node_2.split('.')[0] }}.vm.network :private_network, ip: "{{ worker_node_2_ip }}"
+
+      # Disks
+      {{ worker_node_2.split('.')[0] }}.vm.disk :disk, size: "{{ worker_node_2_disk }}", primary: true
+
+      # VirtualBox configuration
+      {{ worker_node_2.split('.')[0] }}.vm.provider "virtualbox" do |vb|
+        vb.customize ["modifyvm", :id, "--name", "{{ worker_node_2.split('.')[0] }}"]
+        vb.customize ["modifyvm", :id, "--memory", {{ worker_nodes_ram }}]
+        vb.customize ["modifyvm", :id, "--cpus", "{{ worker_nodes_cpus }}"] 
+      end
+    end
+  end

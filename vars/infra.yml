@@ -1,0 +1,29 @@
+---
+# VMs hostnames (FQDN) - Example: pier.terrapin.ch
+master_server: master.juna
+worker_node_1: worker1.juna
+worker_node_2: worker2.juna
+
+# IP addreses
+master_server_ip: "10.0.1.10"
+worker_node_1_ip: "10.0.1.20"
+worker_node_2_ip: "10.0.1.30"
+
+# Disk sizes
+master_server_disk: "120GB"
+worker_node_1_disk: "80GB"
+worker_node_2_disk: "120GB"
+
+# Hardware - RAM specified in MB
+master_server_cpus: "4"
+master_server_ram: 8192
+
+worker_nodes_cpus: "2"
+worker_nodes_ram: 4096
+
+# OS - Ubuntu 24.04
+vagrant_box: "bento/ubuntu-24.04"
+
+# VirtualBox for Ubuntu 22.04 - https://www.virtualbox.org/wiki/Linux_Downloads
+# Will be installed on the host that launches the playbooks (localhost by default)
+vbox_ubuntu: "https://download.virtualbox.org/virtualbox/7.0.20/virtualbox-7.0_7.0.20-163906~Ubuntu~noble_amd64.deb"
